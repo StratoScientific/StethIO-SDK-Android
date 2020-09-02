@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Steth IO Example</string>
+    <string name="start">Start</string>
+    <string name="play">Play</string>
+</resources>
