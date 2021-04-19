@@ -11,30 +11,13 @@ Steth IO SDK
 ## Installation
 
 
-1. Add following line in **gradle.properties** file
+1. Add aar file in app/lib folder
 
-     ```
-         authToken=jp_a0f7m8j95vc0l7mho210u2khrg
-     ```
-
-
-2. Include the library in **build.grade** (App)
-
-     ```
-    allprojects {
-        repositories {
-                maven { url 'https://jitpack.io'
-                credentials { username authToken }
-            }
-        }
-    }
-     ```
-
-1. Include the library in **build.grade** (Module)
+2. Include the library in **build.grade** (Module)
 
      ```
      dependencies {
-         	        implementation 'com.github.StratoScientific:Steth-IO-SDK-Android:17b07e3acf'
+         implementation files('libs/steth-io-sdk.aar')
      }
      ```
 
