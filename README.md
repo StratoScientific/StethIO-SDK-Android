@@ -11,7 +11,7 @@ Steth IO SDK
 ## Installation
 
 
-1. Add aar file in app/lib folder
+1. Add aar file in app/libs folder
 
 2. Include the library in **build.grade** (Module)
 
