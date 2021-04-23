@@ -16,7 +16,6 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.stratoscientific.steth_io_sdk.StethIO;
-import com.stratoscientific.steth_io_sdk.utils.InvalidBundleException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,16 +51,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
-        play.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!recording){
 
-                }else
-                    Toast.makeText(MainActivity.this,"Recording is going on",Toast.LENGTH_SHORT).show();
-            }
-
-        });
 
 
         StethIO stethIO=new StethIO(this);
@@ -90,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
                             }
                         });
-                    } catch (InvalidBundleException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -114,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             stethIORecorder.setTimeToBeRecordedInMillis(30*1000);
 
             stethIORecorder.startRecording();
-        } catch (InvalidBundleException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
