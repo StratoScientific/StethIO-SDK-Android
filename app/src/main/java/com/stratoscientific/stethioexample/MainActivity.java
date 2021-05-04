@@ -1,163 +1,158 @@
 package com.stratoscientific.stethioexample;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.AudioTrack;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.stratoscientific.steth_io_sdk.InvalidBundleException;
 import com.stratoscientific.steth_io_sdk.StethIO;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button start;
-    Button play;
-    boolean recording=false;
-    StethIORecorder stethIORecorder;
-    StethIO stethIO;
-    float[] buffer;
+    private static final int PERMISSION_REQUEST_CODE = 1451;
+
+    private StethIO stethIO;
+
+    private Button startButton, stopButton;
+
+    private SwitchCompat autoSave;
+
+    private Spinner modeSpinner;
+
+    private GLSurfaceView glSurfaceView = null;
+
     private PermissionCallback permissionCallBack;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        start=findViewById(R.id.start);
-        play=findViewById(R.id.play);
-
-        start.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!recording)
-                checkAudioPermission(new PermissionGrantedCallback() {
-                    @Override
-                    public void onGranted() {
-                        startRecording();
-
-                    }
-                });
-            }
-
-        });
-
-
-
-        StethIO stethIO=new StethIO(this);
-    }
-
-    private void startRecording() {
-        recording=true;
         try {
-            stethIO=new StethIO(this);
-            stethIO.setAPiKey("fPTukPlFivKxPA52InV3YoExe0OwS9pR3b44LyRhuH8wVI1yetj91kf64Pr5gzTn")
-                    .prepare();
-            stethIO.setExamType(StethIO.type.LUNG);
-            start.setEnabled(false);
-            play.setEnabled(false);
-            stethIORecorder = new StethIORecorder(this);
-            stethIORecorder.setStethIORecorderCallback(new StethIORecorder.StethIORecorderCallback() {
-                @Override
-                public void onSamplesGenerated(final float[] samples, int bufferSize, final AudioTrack track, long time) {
-
-                    try {
-                        stethIO.processStethAudio(samples, new StethIO.FilteredBuffer() {
-                            @Override
-                            public void getAudioBuffer(float[] floats) {
-                                Log.e("Buffer", String.valueOf(floats.length));
-                                track.write(floats, 0, floats.length, AudioTrack.WRITE_BLOCKING);
-
-                            }
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onRecordingComplete() {
-//               buffer=stethIO.getCompleteAudioBuffer();
-                    stethIO.stopFiltering();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            start.setEnabled(true);
-                        }
-                    });
-                }
-
-            });
-
-            stethIORecorder.setBufferSize(300);
-
-            stethIORecorder.setTimeToBeRecordedInMillis(30*1000);
-
-            stethIORecorder.startRecording();
-        } catch (Exception e) {
+            init();
+        } catch (InvalidBundleException e) {
             e.printStackTrace();
         }
-
-
     }
 
+    private void init() throws InvalidBundleException {
 
+        startButton = findViewById(R.id.start);
+        startButton.setOnClickListener(v -> start());
 
-    public boolean checkIfPermissionIsGranted(String permission) {
+        stopButton = findViewById(R.id.stop);
+        stopButton.setOnClickListener(v -> stop());
 
-        int permissionCheck = ContextCompat.checkSelfPermission(MainActivity.this, permission);
+        glSurfaceView = findViewById(R.id.glSurfaceView);
+        glSurfaceView.setVisibility(View.GONE);
 
-        return permissionCheck == PackageManager.PERMISSION_GRANTED;
+        autoSave = findViewById(R.id.autoSave);
+        modeSpinner = findViewById(R.id.modeSpinner);
+
+        setAdapter();
+
+        initStethIO();
     }
 
-    public void requestPermission(String[] permissions, PermissionCallback permissionCallBack) {
+    private void initStethIO() throws InvalidBundleException {
 
-        this.permissionCallBack = permissionCallBack;
+        stethIO = new StethIO(this);
+        stethIO.setAPiKey("###YOUR_API_KEY###");
+        stethIO.setGlSurfaceView(glSurfaceView);
+        stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
+            @Override
+            public void onSamplesGenerated(float[] floats) {
 
-        ActivityCompat.requestPermissions(MainActivity.this, permissions, 1002);
-
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int reqCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(reqCode, permissions, grantResults);
-        if (reqCode == 10002) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                permissionCallBack.onPermissionGranted();
-            } else {
-                permissionCallBack.onPermissionRejected();
             }
-        }
+
+            @Override
+            public void onRecordingComplete(float[] floats) {
+
+            }
+
+            @Override
+            public void onRecordingComplete(File file) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "File saved to " + file.getPath(), Toast.LENGTH_LONG).show();
+                    Log.d("File saved to ", file.getPath());
+                });
+            }
+        });
+        stethIO.setErrorListener(errorMsg -> runOnUiThread(() -> {
+            Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+            Log.e("Error", errorMsg);
+            startButton.setEnabled(true);
+            stopButton.setEnabled(false);
+        }));
+        stethIO.setBpmListener(bpmString -> runOnUiThread(() -> {
+            Log.d("BPM changed", bpmString);
+        }));
+        stethIO.prepare();
+
     }
 
-    private void checkAudioPermission(final PermissionGrantedCallback grantedCallback) {
+    private void setAdapter() {
+        StethIO.type[] modes = {StethIO.type.HEART, StethIO.type.LUNG};
+        ArrayAdapter<StethIO.type> spinnerArrayAdapter = new ArrayAdapter<StethIO.type>(
+                this,
+                android.R.layout.simple_spinner_item,
+                modes);
+        spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        modeSpinner.setAdapter(spinnerArrayAdapter);
+    }
 
-        if (!checkIfPermissionIsGranted(android.Manifest.permission.RECORD_AUDIO)) {
-            requestPermission(new String[]{Manifest.permission.RECORD_AUDIO}, new PermissionCallback() {
+    public void start() {
+        if (!checkIfPermissionIsGranted(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                || !checkIfPermissionIsGranted(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                || !checkIfPermissionIsGranted(Manifest.permission.RECORD_AUDIO)) {
+            requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.RECORD_AUDIO}, new PermissionCallback() {
                 @Override
                 public void onPermissionGranted() {
-                    checkAudioPermission(grantedCallback);
+
                 }
 
                 @Override
                 public void onPermissionRejected() {
-                    Toast.makeText(MainActivity.this,"Permission Rejected",Toast.LENGTH_SHORT).show();
+
                 }
             });
         } else {
-            grantedCallback.onGranted();
+            startButton.setEnabled(false);
+            stopButton.setEnabled(true);
+            stethIO.setAutoSaveRecording(autoSave.isChecked());
+            stethIO.setExamType((StethIO.type) modeSpinner.getSelectedItem());
+            stethIO.startRecording();
         }
     }
 
+    public void stop() {
+        startButton.setEnabled(true);
+        stopButton.setEnabled(false);
+        stethIO.stopRecording();
+    }
 
+    public boolean checkIfPermissionIsGranted(String permission) {
+        int permissionCheck = ContextCompat.checkSelfPermission(this, permission);
+        return permissionCheck == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public void requestPermission(String[] permissions, PermissionCallback permissionCallBack) {
+        this.permissionCallBack = permissionCallBack;
+        ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
+    }
 }
