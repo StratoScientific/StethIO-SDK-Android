@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button startButton, stopButton;
 
-    private SwitchCompat autoSave;
+    private Spinner sampleTypeSpinner;
 
     private Spinner modeSpinner;
 
@@ -59,8 +59,8 @@ public class MainActivity extends AppCompatActivity {
         glSurfaceView = findViewById(R.id.glSurfaceView);
         glSurfaceView.setVisibility(View.GONE);
 
-        autoSave = findViewById(R.id.autoSave);
         modeSpinner = findViewById(R.id.modeSpinner);
+        sampleTypeSpinner = findViewById(R.id.sampleTypeSpinner);
 
         setAdapter();
 
@@ -112,6 +112,14 @@ public class MainActivity extends AppCompatActivity {
                 modes);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         modeSpinner.setAdapter(spinnerArrayAdapter);
+
+        StethIO.SampleType[] sampleTypes = {StethIO.SampleType.NONE, StethIO.SampleType.RAW_AUDIO, StethIO.SampleType.PROCESSED_AUDIO};
+        ArrayAdapter<StethIO.SampleType> sampleTypesAdapter = new ArrayAdapter<StethIO.SampleType>(
+                this,
+                android.R.layout.simple_spinner_item,
+                sampleTypes);
+        sampleTypesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sampleTypeSpinner.setAdapter(sampleTypesAdapter);
     }
 
     public void start() {
@@ -134,8 +142,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             startButton.setEnabled(false);
             stopButton.setEnabled(true);
-            stethIO.setAutoSaveRecording(autoSave.isChecked());
             stethIO.setExamType((StethIO.type) modeSpinner.getSelectedItem());
+            stethIO.setSampleType((StethIO.SampleType) sampleTypeSpinner.getSelectedItem());
             stethIO.startRecording();
         }
     }
