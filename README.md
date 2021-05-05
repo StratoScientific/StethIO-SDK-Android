@@ -27,7 +27,7 @@ Steth IO SDK
 1. In Activity
     ```
 
-  <!--- //Initializer -->
+  [//]: #  //Initializer
     StethIO stethIO=new StethIO(this);
     
    //Enter your API key here
