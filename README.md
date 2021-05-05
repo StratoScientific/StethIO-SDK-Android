@@ -33,12 +33,27 @@ Steth IO SDK
    //Enter your API key here
     stethIO.setAPiKey("YOUR_API_KEY");
             
+   //Set the filter mode to StethIO.type.HEART/StethIO.type.LUNG
+    stethIO.setExamType(StethIO.type.HEART);
+    
+   //Set the sample type to StethIO.SampleType.NONE/StethIO.SampleType.PROCESSED_AUDIO/StethIO.SampleType.RAW_AUDIO
+    stethIO.setSampleType(StethIO.SampleType.PROCESSED_AUDIO);
+    
    //Pass 'GlSurfaceView' instance to graphview parameter.
    //This view will render the graph visualisation.
    //GlSurfaceView visibility should be View.GONE before passing to stethIO.setGlSurfaceView(...) method.
     stethIO.setGlSurfaceView(glSurfaceView);
-            
-   //Optional listener to get samples
+    
+   //Here we need to process the biquad files and apply filter
+    stethIO.prepare();
+   
+   //This will start the recording
+    stethIO.startRecording();
+    
+   //This will stop the recording
+    stethIO.stopRecording();
+    
+    //Optional listener to get samples
     stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
                @Override
                public void onSamplesGenerated(float[] floats) {
@@ -70,21 +85,6 @@ Steth IO SDK
                           //Perform Action
                             Log.d("BPM changed", bpmString);
            }));
-    
-   //Here we need to process the biquad files and apply filter
-    stethIO.prepare();
-
-   //Set the filter mode to StethIO.type.HEART/StethIO.type.LUNG
-    stethIO.setExamType(StethIO.type.HEART);
-    
-   //Set the sample type to StethIO.SampleType.NONE/StethIO.SampleType.PROCESSED_AUDIO/StethIO.SampleType.RAW_AUDIO
-    stethIO.setSampleType(StethIO.SampleType.PROCESSED_AUDIO);
-   
-   //This will start the recording
-    stethIO.startRecording();
-    
-   //This will stop the recording
-    stethIO.stopRecording();
 
     ```
 ## Important ⚠️
