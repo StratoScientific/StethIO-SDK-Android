@@ -27,34 +27,71 @@ Steth IO SDK
 1. In Activity
     ```
 
-    //Initializes class
+   //Initializer
     StethIO stethIO=new StethIO(this);
-    //Set Api key and prepares for filtering
-    stethIO.setAPiKey("YOUR_API_KEY")
-                        .prepare();
+    
+   //Enter your API key here
+    stethIO.setAPiKey("YOUR_API_KEY");
+            
+   //Pass 'GlSurfaceView' instance to graphview parameter.
+   //This view will render the graph visualisation.
+   //GlSurfaceView visibility should be View.GONE before passing to stethIO.setGlSurfaceView(...) method.
+    stethIO.setGlSurfaceView(glSurfaceView);
+            
+   //Optional listener to get samples
+    stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
+               @Override
+               public void onSamplesGenerated(float[] floats) {
+                          //Perform Action
+               }
+   
+               @Override
+               public void onRecordingComplete(float[] floats) {
+                          //Perform Action
+               }
+   
+               @Override
+               public void onRecordingComplete(File file) {
+                   runOnUiThread(() -> {
+                          //Perform Action
+                            Log.d("File saved to ", file.getPath());
+                   });
+               }
+           });
+   
+   //Optional listener to get error messages
+    stethIO.setErrorListener(errorMsg -> runOnUiThread(() -> {
+                          //Perform Action
+                            Log.e("Error", errorMsg);
+           }));
+   
+   //Optional listener to get BPM string when exam type is Heart
+    stethIO.setBpmListener(bpmString -> runOnUiThread(() -> {
+                          //Perform Action
+                            Log.d("BPM changed", bpmString);
+           }));
+    
+   //Here we need to process the biquad files and apply filter
+    stethIO.prepare();
 
-    //Processing Audio
-    stethIO.processStethAudio(samples, new StethIO.FilteredBuffer() {
-        @Override
-        public void getAudioBuffer(float[] floats) {
-            //Perform Action
-        }
-    });
-
-    //Stop Filtering
-    stethIO.stopFiltering();
+   //Set the filter mode to StethIO.type.HEART/StethIO.type.LUNG
+    stethIO.setExamType(StethIO.type.HEART);
+    
+   //Set the sample type to StethIO.SampleType.NONE/StethIO.SampleType.PROCESSED_AUDIO/StethIO.SampleType.RAW_AUDIO
+    stethIO.setSampleType(StethIO.SampleType.PROCESSED_AUDIO);
+   
+   //This will start the recording
+    stethIO.startRecording();
+    
+   //This will stop the recording
+    stethIO.stopRecording();
 
     ```
-    2. Other Methods
+## Important ⚠️
+The API_KEY in the example application will only work for the example application. Using the same key in another application will not work.
 
+## Author
+StethIO, stethio@ionixxtech.com
 
-	| Method  Name | Required | Default Value | Example |
-	|--|--|--|--|
-	| setBufferSize(int) | NO | 300 | setBufferSize(300);
-	| setExamType(type) | NO | HEART | stethIO.setExamType(StethIO.type.LUNG);
-
-
-## Features
-- Process Audio.
-
-
+## License
+Steth-IO-Android is available under the MIT license. See the LICENSE file for more info.
