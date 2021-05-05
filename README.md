@@ -1,7 +1,7 @@
-Steth IO SDK
+Steth-IO-SDK
 =======
 
-## Download Example
+## Example
 	Clone this repositary to install the example.
 
 ## Requirements
