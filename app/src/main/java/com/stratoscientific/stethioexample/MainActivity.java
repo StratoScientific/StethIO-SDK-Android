@@ -71,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
 
         stethIO = new StethIO(this);
         stethIO.setAPiKey("###YOUR_API_KEY###");
-        stethIO.setDevice();
         stethIO.setGlSurfaceView(glSurfaceView);
         stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
             @Override
