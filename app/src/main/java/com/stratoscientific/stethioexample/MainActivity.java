@@ -70,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
     private void initStethIO() throws InvalidBundleException {
 
         stethIO = new StethIO(this);
+        stethIO.heartMinimumGain(0.7f);
+        stethIO.heartTargetLevel(0.7f);
+        stethIO.lungTargetLevel(0.7f);
         stethIO.setAPiKey("###YOUR_API_KEY###");
         stethIO.setGlSurfaceView(glSurfaceView);
         stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
