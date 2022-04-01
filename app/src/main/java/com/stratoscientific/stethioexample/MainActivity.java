@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private void initStethIO() throws InvalidBundleException {
 
         stethIO = new StethIO(this);
+        System.out.println("Unique Id "+stethIO.getDeviceIMEI(this));
         stethIO.heartMinimumGain(0.7f);
         stethIO.heartTargetLevel(0.7f);
         stethIO.lungTargetLevel(0.7f);
@@ -147,7 +148,12 @@ public class MainActivity extends AppCompatActivity {
             stopButton.setEnabled(true);
             stethIO.setExamType((StethIO.type) modeSpinner.getSelectedItem());
             stethIO.setSampleType((StethIO.SampleType) sampleTypeSpinner.getSelectedItem());
-            stethIO.startRecording();
+            try{
+                stethIO.startRecording();
+            }catch (Exception e){
+
+            }
+
         }
     }
 
