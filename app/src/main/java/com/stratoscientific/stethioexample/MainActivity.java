@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         stethIO.heartMinimumGain(0.7f);
         stethIO.heartTargetLevel(0.7f);
         stethIO.lungTargetLevel(0.7f);
-        stethIO.setAPiKey("###YOUR_API_KEY###");
+        stethIO.setAPiKey("-----API KEY--------------");
         stethIO.setGlSurfaceView(glSurfaceView);
         stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
             @Override
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onRecordingComplete(float[] floats) {
-
+            System.out.println(floats);
             }
 
             @Override
@@ -161,6 +161,9 @@ public class MainActivity extends AppCompatActivity {
         startButton.setEnabled(true);
         stopButton.setEnabled(false);
         stethIO.stopRecording();
+
+        stethIO.generateGraphSnapshot(1368,768,0,10, StethIO.type.HEART);
+
     }
 
     public boolean checkIfPermissionIsGranted(String permission) {

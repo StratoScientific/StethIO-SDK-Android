@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/rajatmasih/Projects/StethIO-SDK-Android-Example/app/src/main/res/layout/activity_main.xml" value="0.16304347826086957" />
+        <entry key="..\:/Users/rajatmasih/Projects/StethIO-SDK-Android-Example/app/src/main/res/xml/network_security_config.xml" value="0.13385416666666666" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
       </map>
     </option>
