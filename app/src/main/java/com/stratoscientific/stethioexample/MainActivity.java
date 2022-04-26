@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         stethIO.heartMinimumGain(0.7f);
         stethIO.heartTargetLevel(0.7f);
         stethIO.lungTargetLevel(0.7f);
-        stethIO.setAPiKey("-----API KEY--------------");
+        stethIO.setAPiKey("--------API KEY----------------");
         stethIO.setGlSurfaceView(glSurfaceView);
         stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
             @Override
@@ -162,7 +162,8 @@ public class MainActivity extends AppCompatActivity {
         stopButton.setEnabled(false);
         stethIO.stopRecording();
 
-        stethIO.generateGraphSnapshot(1368,768,0,10, StethIO.type.HEART);
+        File generatedFile = stethIO.generateGraphSnapshot(1368,768,0,10, StethIO.type.HEART);
+        Toast.makeText(MainActivity.this, "File saved to " + generatedFile.getPath(), Toast.LENGTH_LONG).show();
 
     }
 
