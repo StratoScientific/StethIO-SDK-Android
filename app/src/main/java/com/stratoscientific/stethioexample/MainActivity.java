@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         stethIO.heartMinimumGain(0.7f);
         stethIO.heartTargetLevel(0.7f);
         stethIO.lungTargetLevel(0.7f);
-        stethIO.setAPiKey("--------API KEY----------------");
+        stethIO.setAPiKey("-------------API KEY--------------------");
         stethIO.setGlSurfaceView(glSurfaceView);
         stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
             @Override
