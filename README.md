@@ -69,7 +69,7 @@ stethIO.setListener(new StethIOManagerListener() {
 ```
 3. Actions
 
-|Param    Type    | Required   | Description  | Exception
+|Param |   Type    | Required   | Description  | Exception
 |:--- | --- | :---:| :--- | :---:|
 |setAPiKey| Function|✅|requied valid api key| `InvalidAPIKeyException`
 |isPause| Function | | recording of pause status `Boolean`|
