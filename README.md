@@ -24,69 +24,68 @@ Steth-IO-SDK
 
 
 ### Using SDK
-1. In Activity
-    ```
 
-   //Initializer
-    StethIO stethIO=new StethIO(this);
-    
-   //Enter your API key here
-    stethIO.setAPiKey("YOUR_API_KEY");
+1. Initialize setup
+```
+    StethIOManager.prepare(this);
+    StethIOManager stethIO = StethIOManager.getInstance();
+    stethIO.setDebug(true);// default false
+    stethIO.setClearWhenStop(false);  default false
+    stethIO.setAPiKey("fPTukPlFivKxPA52InV3YoExe0OwS9pR3b44LyRhuH8wVI1yetj91kf64Pr5gzTn");
             
-   //Set the filter mode to StethIO.type.HEART/StethIO.type.LUNG
-    stethIO.setExamType(StethIO.type.HEART);
-    
-   //Set the sample type to StethIO.SampleType.NONE/StethIO.SampleType.PROCESSED_AUDIO/StethIO.SampleType.RAW_AUDIO
-    stethIO.setSampleType(StethIO.SampleType.PROCESSED_AUDIO);
-    
-   //Pass 'GlSurfaceView' instance to graphview parameter.
-   //This view will render the graph visualisation.
-   //GlSurfaceView visibility should be View.GONE before passing to stethIO.setGlSurfaceView(...) method.
-    stethIO.setGlSurfaceView(glSurfaceView);
-    
-   //Here we need to process the biquad files and apply filter
-    stethIO.prepare();
-   
-   //This will start the recording
-    stethIO.startRecording();
-    
-   //This will stop the recording
-    stethIO.stopRecording();
-    
-    //Optional listener to get samples
-    stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
-               @Override
-               public void onSamplesGenerated(float[] floats) {
-                          //Perform Action
-               }
-   
-               @Override
-               public void onRecordingComplete(float[] floats) {
-                          //Perform Action
-               }
-   
-               @Override
-               public void onRecordingComplete(File file) {
-                   runOnUiThread(() -> {
-                          //Perform Action
-                            Log.d("File saved to ", file.getPath());
-                   });
-               }
-           });
-   
-   //Optional listener to get error messages
-    stethIO.setErrorListener(errorMsg -> runOnUiThread(() -> {
-                          //Perform Action
-                            Log.e("Error", errorMsg);
-           }));
-   
-   //Optional listener to get BPM string when exam type is Heart
-    stethIO.setBpmListener(bpmString -> runOnUiThread(() -> {
-                          //Perform Action
-                            Log.d("BPM changed", bpmString);
-           }));
+```
+2. Listener of recording callback
+```
+stethIO.setListener(new StethIOManagerListener() {
+      @Override
+      public void onReadyToStart() {
+          Log.d(TAG, "onReadyToStart");
+      }
 
-    ```
+      @Override
+      public void onStarted() {
+          Log.d(TAG,"onStarted");
+      }
+
+      @Override
+      public void onCancelled() {
+          Log.d(TAG, "onCancelled");
+      }
+
+      @Override
+      public void onReceivedDuration(long milliseconds) {
+          Log.d(TAG, "onReceivedDuration" + milliseconds/1000);
+      }
+
+      @Override
+      public void onFinished(File file) {
+          Log.d(TAG, "onFinished" + file);
+            }
+});
+
+ stethIO.setBpmListener(value -> runOnUiThread(() -> {
+     Log.d("BPM changed", String.valueOf(value));
+}));
+```
+3. Actions
+
+|Param    Type    | Required   | Description  | Exception
+|:--- | --- | :---:| :--- | :---:|
+|setAPiKey| Function|✅|requied valid api key| `InvalidAPIKeyException`
+|isPause| Function | | recording of pause status `Boolean`|
+|isRecording| Function | | recording is active or not `Boolean`|
+|isHeadphonesPlugged| Function | | Headphones is Connected or not  `Boolean`|
+|isBluetoothPlugged| Function | | isBluetoothDevice Plugged  or not `Boolean`|
+|setEnvironment| Function | | default `PRODUCTION`, change the environment `STAGING` or `PRODUCTION`|
+|setExamType| Function |✅|ExamType  `HEART`,`LUNG`|
+|setSampleType| Function |✅|SampleType `NONE`, `RAW_AUDIO`, `PROCESSED_AUDIO`|
+|setDebug| Function ||default value is `false`|
+|start| Function |✅|start the exam, when API key are valid and audio permission|`InvalidAPIKeyException`, `AudioPermissionException`
+|pause| Function | | pause  recording, if recording is running|
+|resume| Function | | resume  recording, if recording is pause|
+|cancel| Function | | cancel  recording, if recording is running|
+|finish| Function | | finish  recording, if recording is running|
+
 ## Important ⚠️
 The API_KEY in the example application will only work for the example application. Using the same key in another application will not work.
 

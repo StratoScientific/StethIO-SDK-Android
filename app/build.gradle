@@ -2,10 +2,9 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 31
-    buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.stratoscientific.stethioexample"
+        applicationId 'com.stratoscientific.stethioexample'
         minSdkVersion 24
         targetSdkVersion 31
         versionCode 1
@@ -24,6 +23,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'com.stratoscientific.stethioexample'
 
 }
 
@@ -36,11 +36,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-
-    implementation files('libs/steth-io-sdk.aar')
-
-
-
-
+    
+    implementation fileTree(dir: 'libs', include: ['*.aar'])
 
 }
