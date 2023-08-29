@@ -1,63 +1,75 @@
 package com.stratoscientific.stethioexample;
 
-import android.Manifest;
 import android.content.pm.PackageManager;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
+
+import android.text.format.DateUtils;
+import android.util.Log;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.stratoscientific.steth_io_sdk.InvalidBundleException;
-import com.stratoscientific.steth_io_sdk.StethIO;
+
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+import com.stratoscientific.stethio.StethIOManager;
+import com.stratoscientific.stethio.StethIOManagerListener;
+import com.stratoscientific.stethio.enums.ExamType;
+import com.stratoscientific.stethio.enums.SampleType;
+import com.stratoscientific.stethio.exception.AudioPermissionException;
+import com.stratoscientific.stethio.exception.InvalidAPIKeyException;
 
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     private static final int PERMISSION_REQUEST_CODE = 1451;
+    private StethIOManager stethIO;
 
-    private StethIO stethIO;
-
-    private Button startButton, stopButton;
-
+    private Button startButton, stopButton, cancelButton, restartButton;
+    private TextView durationTextView;
+    private TextView heartRateTextView;
     private Spinner sampleTypeSpinner;
 
     private Spinner modeSpinner;
-
-    private GLSurfaceView glSurfaceView = null;
-
-    private PermissionCallback permissionCallBack;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         try {
             init();
-        } catch (InvalidBundleException e) {
+        } catch ( InvalidAPIKeyException e) {
             e.printStackTrace();
         }
     }
 
-    private void init() throws InvalidBundleException {
+    private void init() throws InvalidAPIKeyException {
+
+        durationTextView = findViewById(R.id.duration_text_view);
+        heartRateTextView = findViewById(R.id.heart_rate_text_view);
 
         startButton = findViewById(R.id.start);
         startButton.setOnClickListener(v -> start());
 
         stopButton = findViewById(R.id.stop);
-        stopButton.setOnClickListener(v -> stop());
+        cancelButton = findViewById(R.id.cancel);
+        restartButton = findViewById(R.id.restart);
 
-        glSurfaceView = findViewById(R.id.glSurfaceView);
-        glSurfaceView.setVisibility(View.GONE);
+        stopButton.setOnClickListener(v -> stop());
+        cancelButton.setOnClickListener(v -> cancel());
+
+        restartButton.setOnClickListener(v -> stop());
+        restartButton.setOnClickListener(v -> reset());
 
         modeSpinner = findViewById(R.id.modeSpinner);
         sampleTypeSpinner = findViewById(R.id.sampleTypeSpinner);
@@ -65,115 +77,167 @@ public class MainActivity extends AppCompatActivity {
         setAdapter();
 
         initStethIO();
+        updateUI(false);
     }
 
-    private void initStethIO() throws InvalidBundleException {
-
-        stethIO = new StethIO(this);
-        System.out.println("Unique Id "+stethIO.getDeviceIMEI(this));
-        stethIO.heartMinimumGain(0.7f);
-        stethIO.heartTargetLevel(0.7f);
-        stethIO.lungTargetLevel(0.7f);
-        stethIO.setAPiKey("-------------API KEY--------------------");
-        stethIO.setGlSurfaceView(glSurfaceView);
-        stethIO.setSamplesGeneratedListener(new StethIO.SamplesGeneratedListener() {
+    private void updateUI(Boolean enable){
+        startButton.setEnabled(enable);
+        stopButton.setEnabled(enable);
+        cancelButton.setEnabled(enable);
+        restartButton.setEnabled(enable);
+    }
+    private void initStethIO() throws  InvalidAPIKeyException {
+        StethIOManager.prepare(this);
+        stethIO = StethIOManager.getInstance();
+        stethIO.setDebug(true);
+        stethIO.setClearWhenStop(false);
+        stethIO.setAPiKey("fPTukPlFivKxPA52InV3YoExe0OwS9pR3b44LyRhuH8wVI1yetj91kf64Pr5gzTn");
+        stethIO.setListener(new StethIOManagerListener() {
             @Override
-            public void onSamplesGenerated(float[] floats) {
-
+            public void onReadyToStart() {
+                startButton.setEnabled(true);
+                LinearLayout progress = findViewById(R.id.loading_container);
+                progress.setVisibility(View.GONE);
+                Log.d(TAG, "onReadyToStart");
             }
 
             @Override
-            public void onRecordingComplete(float[] floats) {
-            System.out.println(floats);
+            public void onStarted() {
+                updateUI(true);
+                startButton.setText("Pause");
+                Log.d(TAG,"onStarted");
             }
 
             @Override
-            public void onRecordingComplete(File file) {
-                runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, "File saved to " + file.getPath(), Toast.LENGTH_LONG).show();
-                    Log.d("File saved to ", file.getPath());
+            public void onCancelled() {
+                Log.d(TAG, "onCancelled");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateUI(false);
+                        startButton.setEnabled(true);
+                        startButton.setText("Start");
+                        heartRateTextView.setText("");
+                    }
                 });
             }
+
+            @Override
+            public void onReceivedDuration(long milliseconds) {
+                Log.d(TAG, "onReceivedDuration" + milliseconds/1000);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        durationTextView.setText(DateUtils.formatElapsedTime(milliseconds/1000));
+                    }
+                });
+            }
+
+            @Override
+            public void onFinished(File file) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateUI(false);
+                        startButton.setEnabled(true);
+                        startButton.setText("Start");
+                        heartRateTextView.setText("");
+                    }
+                });
+                Log.d(TAG, "onFinished" + file);
+            }
         });
-        stethIO.setErrorListener(errorMsg -> runOnUiThread(() -> {
-            Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
-            Log.e("Error", errorMsg);
-            startButton.setEnabled(true);
-            stopButton.setEnabled(false);
+        stethIO.setBpmListener(value -> runOnUiThread(() -> {
+            Log.d("BPM changed", String.valueOf(value));
+            heartRateTextView.setText(String.valueOf(value));
         }));
-        stethIO.setBpmListener(bpmString -> runOnUiThread(() -> {
-            Log.d("BPM changed", bpmString);
-        }));
-        stethIO.prepare();
 
     }
 
     private void setAdapter() {
-        StethIO.type[] modes = {StethIO.type.HEART, StethIO.type.LUNG};
-        ArrayAdapter<StethIO.type> spinnerArrayAdapter = new ArrayAdapter<StethIO.type>(
+        ExamType[] modes = {ExamType.HEART, ExamType.LUNG};
+        ArrayAdapter<ExamType> spinnerArrayAdapter = new ArrayAdapter<ExamType>(
                 this,
                 android.R.layout.simple_spinner_item,
                 modes);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         modeSpinner.setAdapter(spinnerArrayAdapter);
+        modeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.d(TAG, "modeSpinner:onItemClick: " + i + " - " + l);
+                try {
+                    stethIO.setExamType(modes[i]);
+                } catch (Exception e) {
+                    Log.d(TAG, "modeSpinner:: " + e.getLocalizedMessage());
+                }
+            }
 
-        StethIO.SampleType[] sampleTypes = {StethIO.SampleType.NONE, StethIO.SampleType.RAW_AUDIO, StethIO.SampleType.PROCESSED_AUDIO};
-        ArrayAdapter<StethIO.SampleType> sampleTypesAdapter = new ArrayAdapter<StethIO.SampleType>(
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        SampleType[] sampleTypes = {SampleType.NONE, SampleType.RAW_AUDIO, SampleType.PROCESSED_AUDIO};
+        ArrayAdapter<SampleType> sampleTypesAdapter = new ArrayAdapter<SampleType>(
                 this,
                 android.R.layout.simple_spinner_item,
                 sampleTypes);
         sampleTypesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sampleTypeSpinner.setAdapter(sampleTypesAdapter);
+        sampleTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.d(TAG, "sampleTypeSpinner:onItemClick: " + i + " - " + l);
+                stethIO.setSampleType(sampleTypes[i]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
     }
 
     public void start() {
-        if (!checkIfPermissionIsGranted(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-                || !checkIfPermissionIsGranted(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-                || !checkIfPermissionIsGranted(Manifest.permission.RECORD_AUDIO)) {
-            requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.RECORD_AUDIO}, new PermissionCallback() {
-                @Override
-                public void onPermissionGranted() {
-
-                }
-
-                @Override
-                public void onPermissionRejected() {
-
-                }
-            });
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.RECORD_AUDIO}, PERMISSION_REQUEST_CODE);
         } else {
-            startButton.setEnabled(false);
-            stopButton.setEnabled(true);
-            stethIO.setExamType((StethIO.type) modeSpinner.getSelectedItem());
-            stethIO.setSampleType((StethIO.SampleType) sampleTypeSpinner.getSelectedItem());
-            try{
-                stethIO.startRecording();
-            }catch (Exception e){
-
+            if (stethIO.isRecording()){
+                if (stethIO.isPause() ){
+                    stethIO.resume();
+                }else {
+                    stethIO.pause();
+                }
+                String text = stethIO.isPause() ? "Resume" :"Pause";
+                startButton.setText(text);
+                return;
             }
-
+            try{
+                stethIO.start();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
     }
 
     public void stop() {
-        startButton.setEnabled(true);
-        stopButton.setEnabled(false);
-        stethIO.stopRecording();
-
-        File generatedFile = stethIO.generateGraphSnapshot(1368,768,0,10, StethIO.type.HEART);
-        Toast.makeText(MainActivity.this, "File saved to " + generatedFile.getPath(), Toast.LENGTH_LONG).show();
-
+        stethIO.finish();
+    }
+    public void cancel() {
+        stethIO.cancel();
     }
 
-    public boolean checkIfPermissionIsGranted(String permission) {
-        int permissionCheck = ContextCompat.checkSelfPermission(this, permission);
-        return permissionCheck == PackageManager.PERMISSION_GRANTED;
+    public void reset() {
+        stethIO.cancel();
+        stethIO.start();
     }
 
-    public void requestPermission(String[] permissions, PermissionCallback permissionCallBack) {
-        this.permissionCallBack = permissionCallBack;
-        ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            start();
+        }
     }
 }
