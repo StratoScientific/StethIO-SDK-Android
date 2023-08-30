@@ -67,7 +67,14 @@ stethIO.setListener(new StethIOManagerListener() {
      Log.d("BPM changed", String.valueOf(value));
 }));
 ```
-3. Actions
+3. SpectrumGLSurfaceView layout design render
+```
+<com.stratoscientific.stethio.SpectrumGLSurfaceView
+        android:id="@+id/glSurfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"/>
+```
+4. Actions
 
 |Param |   Type    | Required   | Description  | Exception
 |:--- | --- | :---:| :--- | :---:|
