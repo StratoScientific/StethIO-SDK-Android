@@ -6,12 +6,18 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Looper;
 import android.text.format.DateUtils;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.stratoscientific.stethio.StethIOManagerListener;
+import com.stratoscientific.stethio.enums.ExamType;
+import com.stratoscientific.stethio.exception.InvalidAPIKeyException;
+import com.stratoscientific.stethio.enums.SampleType;
+import com.stratoscientific.stethio.StethIOManager;
 
 import android.view.View;
 import android.widget.AdapterView;
@@ -20,13 +26,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-
-import com.stratoscientific.stethio.StethIOManager;
-import com.stratoscientific.stethio.StethIOManagerListener;
-import com.stratoscientific.stethio.enums.ExamType;
-import com.stratoscientific.stethio.enums.SampleType;
-import com.stratoscientific.stethio.exception.AudioPermissionException;
-import com.stratoscientific.stethio.exception.InvalidAPIKeyException;
 
 import java.io.File;
 
@@ -91,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
         stethIO = StethIOManager.getInstance();
         stethIO.setDebug(true);
         stethIO.setClearWhenStop(false);
-        stethIO.setAPiKey("fPTukPlFivKxPA52InV3YoExe0OwS9pR3b44LyRhuH8wVI1yetj91kf64Pr5gzTn");
         stethIO.setListener(new StethIOManagerListener() {
             @Override
             public void onReadyToStart() {
@@ -103,28 +101,22 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onStarted() {
-                updateUI(true);
-                startButton.setText("Pause");
+                runOnUiThread(() -> {
+                    updateUI(true);
+                    startButton.setText("Pause");
+                });
+
                 Log.d(TAG,"onStarted");
             }
 
             @Override
             public void onCancelled() {
                 Log.d(TAG, "onCancelled");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateUI(false);
-                        startButton.setEnabled(true);
-                        startButton.setText("Start");
-                        heartRateTextView.setText("");
-                    }
-                });
             }
 
             @Override
             public void onReceivedDuration(long milliseconds) {
-                Log.d(TAG, "onReceivedDuration" + milliseconds/1000);
+//                Log.d(TAG, "onReceivedDuration" + milliseconds/1000);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -151,11 +143,12 @@ public class MainActivity extends AppCompatActivity {
             Log.d("BPM changed", String.valueOf(value));
             heartRateTextView.setText(String.valueOf(value));
         }));
+        stethIO.setAPiKey("fPTukPlFivKxPA52InV3YoExe0OwS9pR3b44LyRhuH8wVI1yetj91kf64Pr5gzTn");
 
     }
 
     private void setAdapter() {
-        ExamType[] modes = {ExamType.HEART, ExamType.LUNG};
+        ExamType[] modes = {ExamType.HEART, ExamType.LUNG, ExamType.VASCULAR};
         ArrayAdapter<ExamType> spinnerArrayAdapter = new ArrayAdapter<ExamType>(
                 this,
                 android.R.layout.simple_spinner_item,
@@ -203,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.RECORD_AUDIO}, PERMISSION_REQUEST_CODE);
         } else {
+            updateUI(true);
             if (stethIO.isRecording()){
                 if (stethIO.isPause() ){
                     stethIO.resume();
@@ -226,11 +220,15 @@ public class MainActivity extends AppCompatActivity {
     }
     public void cancel() {
         stethIO.cancel();
+        updateUI(false);
+        startButton.setEnabled(true);
+        startButton.setText("Start");
+        heartRateTextView.setText("");
     }
 
     public void reset() {
-        stethIO.cancel();
-        stethIO.start();
+        cancel();
+        start();
     }
 
     @Override
