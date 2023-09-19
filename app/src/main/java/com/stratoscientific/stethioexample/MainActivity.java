@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setAdapter() {
-        ExamType[] modes = {ExamType.HEART, ExamType.LUNG, ExamType.VASCULAR};
+        ExamType[] modes = {ExamType.HEART, ExamType.LUNGS, ExamType.VASCULAR};
         ArrayAdapter<ExamType> spinnerArrayAdapter = new ArrayAdapter<ExamType>(
                 this,
                 android.R.layout.simple_spinner_item,

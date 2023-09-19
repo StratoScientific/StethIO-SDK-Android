@@ -7,21 +7,28 @@ Steth-IO-SDK
 ## Requirements
 - The recording frequency must be 44.1khz because the filters are designed in such way.
 - The heart/lung filters will work as expected only with Steth IO hardware.
+- Any headset can be used to connect and take an exam
 
 ## Installation
 
-1. Find the **aar file** in example project's **app/libs** folder and download it.
+##### 1. Add build.gradle
+```
+allprojects {
+    repositories {
+        maven {
+            url = uri("https://maven.pkg.github.com/StratoScientific/StethIO-SDK-Android")
+         }
+      }
+}
+```
 
-2. Add **aar file** in your project's **app/libs** folder.
+##### Include the library in **build.grade** (Module)
 
-3. Include the library in **build.grade** (Module)
-
-     ```
-     dependencies {
-         implementation files('libs/steth-io-sdk.aar')
-     }
-     ```
-
+```
+dependencies {
+    implementation 'com.stratoscientific:stethio:1.0.1'
+}
+```
 
 ### Using SDK
 
@@ -97,7 +104,7 @@ stethIO.setListener(new StethIOManagerListener() {
 The API_KEY in the example application will only work for the example application. Using the same key in another application will not work.
 
 ## Author
-StethIO, stethio@ionixxtech.com
+StethIO, craig@stethio.com
 
 ## License
 Steth-IO-Android is available under the MIT license. See the LICENSE file for more info.
