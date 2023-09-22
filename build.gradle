@@ -22,6 +22,10 @@ allprojects {
         jcenter()
         maven {
             url = uri("https://maven.pkg.github.com/StratoScientific/StethIO-SDK-Android")
+            credentials {
+                username = "GITHUB_USERNAME"
+                password = "ACCESS_TOKEN"
+            }
         }
 
     }

@@ -11,18 +11,37 @@ Steth-IO-SDK
 
 ## Installation
 
-##### 1. Add build.gradle
+##### 1. Need to create access token 
+https://github.com/settings/tokens
+
+Following permission required `Generate new (classic) token`
+
+1. `read:packages`
+2. `read:public_key`
+
+![screenshot](./screenshot/access-token-permission.png)
+
+
+
+
+##### 2. Add build.gradle
+
+
 ```
 allprojects {
     repositories {
         maven {
             url = uri("https://maven.pkg.github.com/StratoScientific/StethIO-SDK-Android")
+              credentials {
+                    username = "USER_NAME"
+                    password = "PERSONAL_ACCESS_TOKEN"
+                }
          }
       }
 }
 ```
 
-##### Include the library in **build.grade** (Module)
+##### 3. Include the library in **build.grade** (Module)
 
 ```
 dependencies {
