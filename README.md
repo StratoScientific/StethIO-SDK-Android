@@ -56,7 +56,6 @@ dependencies {
     StethIOManager.prepare(this);
     StethIOManager stethIO = StethIOManager.getInstance();
     stethIO.setDebug(true);// default false
-    stethIO.setClearWhenStop(false);  default false
     stethIO.setAPiKey("fPTukPlFivKxPA52InV3YoExe0OwS9pR3b44LyRhuH8wVI1yetj91kf64Pr5gzTn");
             
 ```
@@ -110,10 +109,9 @@ stethIO.setListener(new StethIOManagerListener() {
 |isHeadphonesPlugged| Function | | Headphones is Connected or not  `Boolean`|
 |isBluetoothPlugged| Function | | isBluetoothDevice Plugged  or not `Boolean`|
 |setEnvironment| Function | | default `PRODUCTION`, change the environment `STAGING` or `PRODUCTION`|
-|setExamType| Function |✅|ExamType  `HEART`,`LUNG`, `VASCULAR`|
 |setSampleType| Function |✅|SampleType `NONE`, `RAW_AUDIO`, `PROCESSED_AUDIO`|
 |setDebug| Function ||default value is `false`|
-|start| Function |✅|start the exam, when API key are valid and audio permission|`InvalidAPIKeyException`, `AudioPermissionException`
+|start| Function |✅|start the exam, when API key are valid and audio permission ExamType  `HEART`,`LUNG`, `VASCULAR` |`InvalidAPIKeyException`, `AudioPermissionException`
 |pause| Function | | pause  recording, if recording is running|
 |resume| Function | | resume  recording, if recording is pause|
 |cancel| Function | | cancel  recording, if recording is running|

@@ -1,30 +1,34 @@
 package com.stratoscientific.stethioexample;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Looper;
 import android.text.format.DateUtils;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.stratoscientific.stethio.SpectrumGLSurfaceView;
 import com.stratoscientific.stethio.StethIOManagerListener;
 import com.stratoscientific.stethio.enums.ExamType;
 import com.stratoscientific.stethio.exception.InvalidAPIKeyException;
 import com.stratoscientific.stethio.enums.SampleType;
 import com.stratoscientific.stethio.StethIOManager;
+import com.stratoscientific.stethioexample.R;
 
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.io.File;
@@ -39,8 +43,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView durationTextView;
     private TextView heartRateTextView;
     private Spinner sampleTypeSpinner;
-
+    private SpectrumGLSurfaceView spectrumGLSurfaceView;
     private Spinner modeSpinner;
+    ExamType examType = ExamType.HEART;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,8 +59,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void init() throws InvalidAPIKeyException {
 
+        spectrumGLSurfaceView = findViewById(R.id.glSurfaceView);
         durationTextView = findViewById(R.id.duration_text_view);
         heartRateTextView = findViewById(R.id.heart_rate_text_view);
+        Switch debug_mode_switch = findViewById(R.id.debug_mode_switch);
 
         startButton = findViewById(R.id.start);
         startButton.setOnClickListener(v -> start());
@@ -63,12 +70,17 @@ public class MainActivity extends AppCompatActivity {
         stopButton = findViewById(R.id.stop);
         cancelButton = findViewById(R.id.cancel);
         restartButton = findViewById(R.id.restart);
+        Button fullScreenButton = findViewById(R.id.full_screen_button);
 
         stopButton.setOnClickListener(v -> stop());
         cancelButton.setOnClickListener(v -> cancel());
 
         restartButton.setOnClickListener(v -> stop());
         restartButton.setOnClickListener(v -> reset());
+        fullScreenButton.setOnClickListener(v -> {
+            spectrumGLSurfaceView.onPause();
+            startActivity(new Intent(this, SecondActivity.class));
+        });
 
         modeSpinner = findViewById(R.id.modeSpinner);
         sampleTypeSpinner = findViewById(R.id.sampleTypeSpinner);
@@ -77,6 +89,25 @@ public class MainActivity extends AppCompatActivity {
 
         initStethIO();
         updateUI(false);
+        debug_mode_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // do something, the isChecked will be
+                // true if the switch is in the On position
+                StethIOManager.getInstance().setDebug(isChecked);
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        spectrumGLSurfaceView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+       spectrumGLSurfaceView.onPause();
     }
 
     private void updateUI(Boolean enable){
@@ -89,8 +120,7 @@ public class MainActivity extends AppCompatActivity {
         StethIOManager.prepare(this);
         stethIO = StethIOManager.getInstance();
         stethIO.setDebug(true);
-        stethIO.setClearWhenStop(false);
-        stethIO.setListener(new StethIOManagerListener() {
+         stethIO.setListener(new StethIOManagerListener() {
             @Override
             public void onReadyToStart() {
                 startButton.setEnabled(true);
@@ -160,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 Log.d(TAG, "modeSpinner:onItemClick: " + i + " - " + l);
                 try {
-                    stethIO.setExamType(modes[i]);
+                    examType = modes[i];
                 } catch (Exception e) {
                     Log.d(TAG, "modeSpinner:: " + e.getLocalizedMessage());
                 }
@@ -208,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             try{
-                stethIO.start();
+                stethIO.start(examType);
             }catch (Exception e){
                 e.printStackTrace();
             }
