@@ -45,7 +45,7 @@ allprojects {
 
 ```
 dependencies {
-    implementation 'com.stratoscientific:stethio:1.0.1'
+    implementation 'com.stratoscientific:stethio:1.0.$VERSION'
 }
 ```
 
@@ -83,7 +83,7 @@ stethIO.setListener(new StethIOManagerListener() {
       public void onReceivedDuration(long milliseconds) {
           Log.d(TAG, "onReceivedDuration" + milliseconds/1000);
       }
-      
+
       @Override
       public void onRenderSpectrumGLSurfaceView(long id, ExamType examType) {
           spectrumGLSurfaceView.setMap(id, examType);
@@ -107,16 +107,27 @@ stethIO.setListener(new StethIOManagerListener() {
 ```
 4. Actions
 
+###### StethIOBase 
+
+     it used for setup
+
 |Param |   Type    | Required   | Description  | Exception
 |:--- | --- | :---:| :--- | :---:|
 |setAPiKey| Function|✅|requied valid api key| `InvalidAPIKeyException`
+|setEnvironment| Function | | default `PRODUCTION`, change the environment `STAGING` or `PRODUCTION`|
+|setDebug| Function ||default value is `false`|
+
+######  StethIOManager
+
+     it used for start & manage the exam.
+
+|Param |   Type    | Required   | Description  | Exception
+|:--- | --- | :---:| :--- | :---:|
 |isPause| Function | | recording of pause status `Boolean`|
 |isRecording| Function | | recording is active or not `Boolean`|
 |isHeadphonesPlugged| Function | | Headphones is Connected or not  `Boolean`|
 |isBluetoothPlugged| Function | | isBluetoothDevice Plugged  or not `Boolean`|
-|setEnvironment| Function | | default `PRODUCTION`, change the environment `STAGING` or `PRODUCTION`|
 |setSampleType| Function |✅|SampleType `NONE`, `RAW_AUDIO`, `PROCESSED_AUDIO`|
-|setDebug| Function ||default value is `false`|
 |start| Function |✅|start the exam, when API key are valid and audio permission ExamType  `HEART`,`LUNG`, `VASCULAR` |`InvalidAPIKeyException`, `AudioPermissionException`
 |pause| Function | | pause  recording, if recording is running|
 |resume| Function | | resume  recording, if recording is pause|
@@ -124,7 +135,8 @@ stethIO.setListener(new StethIOManagerListener() {
 |finish| Function | | finish  recording, if recording is running|
 
 ## Important ⚠️
-The API_KEY in the example application will only work for the example application. Using the same key in another application will not work.
+ * The API_KEY in the example application will only work for the example application. Using the same key in another application will not work.
+ * stop or cancel exam is mandatory.  if exam is not completed, you can't take other exam
 
 ## Author
 StethIO, craig@stethio.com
