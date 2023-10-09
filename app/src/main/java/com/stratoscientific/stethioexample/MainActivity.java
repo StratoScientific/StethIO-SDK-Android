@@ -1,10 +1,12 @@
 package com.stratoscientific.stethioexample;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.text.format.DateUtils;
@@ -13,8 +15,8 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.stratoscientific.stethio.SpectrumGLSurfaceView;
-import com.stratoscientific.stethio.StethIOManagerListener;
+import com.stratoscientific.stethio.spectrum.SpectrumGLSurfaceView;
+import com.stratoscientific.stethio.StethIOBase;
 import com.stratoscientific.stethio.enums.ExamType;
 import com.stratoscientific.stethio.exception.InvalidAPIKeyException;
 import com.stratoscientific.stethio.enums.SampleType;
@@ -37,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static final int PERMISSION_REQUEST_CODE = 1451;
-    private StethIOManager stethIO;
+    private StethIOManager stethIOManager;
 
     private Button startButton, stopButton, cancelButton, restartButton;
     private TextView durationTextView;
@@ -78,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
         restartButton.setOnClickListener(v -> stop());
         restartButton.setOnClickListener(v -> reset());
         fullScreenButton.setOnClickListener(v -> {
-            spectrumGLSurfaceView.onPause();
-            startActivity(new Intent(this, SecondActivity.class));
+//            spectrumGLSurfaceView.onPause();
+            startActivity(new Intent(this, MainActivity.class));
         });
 
         modeSpinner = findViewById(R.id.modeSpinner);
@@ -93,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 // do something, the isChecked will be
                 // true if the switch is in the On position
-                StethIOManager.getInstance().setDebug(isChecked);
+                StethIOBase.getInstance().setDebug(isChecked);
             }
         });
     }
@@ -110,6 +112,12 @@ public class MainActivity extends AppCompatActivity {
        spectrumGLSurfaceView.onPause();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stethIOManager.cancel();
+    }
+
     private void updateUI(Boolean enable){
         startButton.setEnabled(enable);
         stopButton.setEnabled(enable);
@@ -117,10 +125,10 @@ public class MainActivity extends AppCompatActivity {
         restartButton.setEnabled(enable);
     }
     private void initStethIO() throws  InvalidAPIKeyException {
-        StethIOManager.prepare(this);
-        stethIO = StethIOManager.getInstance();
-        stethIO.setDebug(true);
-         stethIO.setListener(new StethIOManagerListener() {
+        StethIOBase.prepare(this);
+        stethIOManager = StethIOManager.createInstance(this);
+        StethIOBase.getInstance().setDebug(true);
+        StethIOBase.getInstance().setListener(new StethIOBase.Listener() {
             @Override
             public void onReadyToStart() {
                 startButton.setEnabled(true);
@@ -128,7 +136,11 @@ public class MainActivity extends AppCompatActivity {
                 progress.setVisibility(View.GONE);
                 Log.d(TAG, "onReadyToStart");
             }
+        });
+        StethIOBase.getInstance().setAPiKey("fPTukPlFivKxPA52InV3YoExe0OwS9pR3b44LyRhuH8wVI1yetj91kf64Pr5gzTn");
+        updateUI(false);
 
+        stethIOManager.setListener(new StethIOManager.Listener() {
             @Override
             public void onStarted() {
                 runOnUiThread(() -> {
@@ -156,6 +168,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
+            public void onRenderSpectrumGLSurfaceView(long id, ExamType examType) {
+                spectrumGLSurfaceView.setMap(id, examType);
+            }
+
+            @Override
             public void onFinished(File file) {
                 runOnUiThread(new Runnable() {
                     @Override
@@ -169,11 +186,10 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "onFinished" + file);
             }
         });
-        stethIO.setBpmListener(value -> runOnUiThread(() -> {
+        stethIOManager.setBpmListener(value -> runOnUiThread(() -> {
             Log.d("BPM changed", String.valueOf(value));
             heartRateTextView.setText(String.valueOf(value));
         }));
-        stethIO.setAPiKey("fPTukPlFivKxPA52InV3YoExe0OwS9pR3b44LyRhuH8wVI1yetj91kf64Pr5gzTn");
 
     }
 
@@ -212,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 Log.d(TAG, "sampleTypeSpinner:onItemClick: " + i + " - " + l);
-                stethIO.setSampleType(sampleTypes[i]);
+                stethIOManager.setSampleType(sampleTypes[i]);
             }
 
             @Override
@@ -226,30 +242,31 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.RECORD_AUDIO}, PERMISSION_REQUEST_CODE);
         } else {
-            updateUI(true);
-            if (stethIO.isRecording()){
-                if (stethIO.isPause() ){
-                    stethIO.resume();
+            if (stethIOManager.isRecording()){
+                if (stethIOManager.isPause() ){
+                    stethIOManager.resume();
                 }else {
-                    stethIO.pause();
+                    stethIOManager.pause();
                 }
-                String text = stethIO.isPause() ? "Resume" :"Pause";
+                String text = stethIOManager.isPause() ? "Resume" :"Pause";
                 startButton.setText(text);
                 return;
             }
             try{
-                stethIO.start(examType);
+                stethIOManager.start(examType);
+                updateUI(true);
             }catch (Exception e){
                 e.printStackTrace();
+                showError(e.getLocalizedMessage());
             }
         }
     }
 
     public void stop() {
-        stethIO.finish();
+        stethIOManager.finish();
     }
     public void cancel() {
-        stethIO.cancel();
+        stethIOManager.cancel();
         updateUI(false);
         startButton.setEnabled(true);
         startButton.setText("Start");
@@ -267,5 +284,23 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PERMISSION_REQUEST_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             start();
         }
+    }
+
+    private void showError(String message){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message);
+        builder.setTitle("Error!");
+        builder.setCancelable(true);
+
+        builder.setPositiveButton(
+                "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+        AlertDialog alert11 = builder.create();
+        alert11.show();
     }
 }

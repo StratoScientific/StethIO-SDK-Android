@@ -53,19 +53,21 @@ dependencies {
 
 1. Initialize setup
 ```
-    StethIOManager.prepare(this);
-    StethIOManager stethIO = StethIOManager.getInstance();
-    stethIO.setDebug(true);// default false
-    stethIO.setAPiKey("fPTukPlFivKxPA52InV3YoExe0OwS9pR3b44LyRhuH8wVI1yetj91kf64Pr5gzTn");
+    StethIOBase.prepare(this);
+    StethIOBase.getInstance().setDebug(true);
+    StethIOBase.getInstance().setAPiKey("<KEY>");
+    StethIOBase.getInstance().setListener(new StethIOBase.Listener() {
+            @Override
+            public void onReadyToStart() {
+
+            }
+        });
             
 ```
 2. Listener of recording callback
 ```
+StethIOManager stethIO = StethIOManager.getInstance();
 stethIO.setListener(new StethIOManagerListener() {
-      @Override
-      public void onReadyToStart() {
-          Log.d(TAG, "onReadyToStart");
-      }
 
       @Override
       public void onStarted() {
@@ -81,11 +83,15 @@ stethIO.setListener(new StethIOManagerListener() {
       public void onReceivedDuration(long milliseconds) {
           Log.d(TAG, "onReceivedDuration" + milliseconds/1000);
       }
-
+      
+      @Override
+      public void onRenderSpectrumGLSurfaceView(long id, ExamType examType) {
+          spectrumGLSurfaceView.setMap(id, examType);
+      }
       @Override
       public void onFinished(File file) {
           Log.d(TAG, "onFinished" + file);
-            }
+       }
 });
 
  stethIO.setBpmListener(value -> runOnUiThread(() -> {

@@ -4,7 +4,8 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.stratoscientific.stethio.SpectrumGLSurfaceView;
+import com.stratoscientific.stethio.spectrum.SpectrumGLSurfaceView;
+import com.stratoscientific.stethioexample.R;
 
 public class SecondActivity extends AppCompatActivity {
     private SpectrumGLSurfaceView spectrumGLSurfaceView;
@@ -19,6 +20,6 @@ public class SecondActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        spectrumGLSurfaceView.onPause();
+//        spectrumGLSurfaceView.onPause();
     }
 }

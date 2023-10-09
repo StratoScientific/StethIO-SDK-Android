@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".SecondActivity">
 
-    <com.stratoscientific.stethio.SpectrumGLSurfaceView
+    <com.stratoscientific.stethio.spectrum.SpectrumGLSurfaceView
         android:id="@+id/glSurfaceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
