@@ -66,7 +66,7 @@ dependencies {
 ```
 2. Listener of recording callback
 ```
-StethIOManager stethIO = StethIOManager.getInstance();
+StethIOManager stethIO = StethIOManager.createInstance(this);
 stethIO.setListener(new StethIOManagerListener() {
 
       @Override
