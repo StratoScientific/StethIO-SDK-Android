@@ -127,7 +127,7 @@ stethIO.setListener(new StethIOManagerListener() {
 |isRecording| Function | | recording is active or not `Boolean`|
 |isHeadphonesPlugged| Function | | Headphones is Connected or not  `Boolean`|
 |isBluetoothPlugged| Function | | isBluetoothDevice Plugged  or not `Boolean`|
-|setSampleType| Function |✅|SampleType `NONE`, `RAW_AUDIO`, `PROCESSED_AUDIO`|
+|setAudioSampleType| Function |✅| AudioSampleType `NONE`, `RAW_AUDIO`, `PROCESSED_AUDIO`, `AUTO_GAIN`|
 |start| Function |✅|start the exam, when API key are valid and audio permission ExamType  `HEART`,`LUNG`, `VASCULAR` |`InvalidAPIKeyException`, `AudioPermissionException`
 |pause| Function | | pause  recording, if recording is running|
 |resume| Function | | resume  recording, if recording is pause|

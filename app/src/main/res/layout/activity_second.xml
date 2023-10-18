@@ -5,10 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".SecondActivity">
+    tools:context="com.stethio.example.SecondActivity">
 
     <com.stratoscientific.stethio.spectrum.SpectrumGLSurfaceView
         android:id="@+id/glSurfaceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+
+
+
+
 </LinearLayout>
