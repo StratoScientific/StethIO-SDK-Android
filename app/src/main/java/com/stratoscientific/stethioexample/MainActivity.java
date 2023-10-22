@@ -1,6 +1,5 @@
 package com.stratoscientific.stethioexample;
 
-import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,6 +15,7 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.stratoscientific.stethio.StethIOExamOption;
 import com.stratoscientific.stethio.enums.AudioSampleType;
 import com.stratoscientific.stethio.spectrum.SpectrumGLSurfaceView;
 import com.stratoscientific.stethio.StethIOBase;
@@ -25,13 +25,9 @@ import com.stratoscientific.stethio.StethIOManager;
 import com.stratoscientific.stethioexample.R;
 
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.Switch;
+ import android.widget.Button;
+ import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.File;
@@ -45,13 +41,9 @@ public class MainActivity extends AppCompatActivity {
     private Button startButton, stopButton, cancelButton, restartButton;
     private TextView durationTextView;
     private TextView heartRateTextView;
-    private Spinner sampleTypeSpinner;
     private SpectrumGLSurfaceView spectrumGLSurfaceView;
-    private Spinner modeSpinner;
     private LinearLayout containerLinear;
-    private Switch whiteSwitch;
-    private Switch debugModeSwitch;
-    ExamType examType = ExamType.HEART;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +55,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        stethIOManager.cancel();
+        super.onDestroy();
+    }
+
     private void init() throws InvalidAPIKeyException {
 
         containerLinear = findViewById(R.id.container_linear);
@@ -70,8 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         durationTextView = findViewById(R.id.duration_text_view);
         heartRateTextView = findViewById(R.id.heart_rate_text_view);
-        whiteSwitch = findViewById(R.id.background_mode_switch);
-        debugModeSwitch = findViewById(R.id.debug_mode_switch);
+
 
         startButton = findViewById(R.id.start);
         startButton.setOnClickListener(v -> start());
@@ -79,46 +76,15 @@ public class MainActivity extends AppCompatActivity {
         stopButton = findViewById(R.id.stop);
         cancelButton = findViewById(R.id.cancel);
         restartButton = findViewById(R.id.restart);
-        Button fullScreenButton = findViewById(R.id.full_screen_button);
 
         stopButton.setOnClickListener(v -> stop());
         cancelButton.setOnClickListener(v -> cancel());
 
         restartButton.setOnClickListener(v -> stop());
         restartButton.setOnClickListener(v -> reset());
-        fullScreenButton.setOnClickListener(v -> {
-
-            spectrumGLSurfaceView.setRenderMode(RENDERMODE_WHEN_DIRTY);
-            spectrumGLSurfaceView.onPause();
-            LinearLayout.LayoutParams param  = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
-            containerLinear.removeView(spectrumGLSurfaceView);
-            spectrumGLSurfaceView.setLayoutParams(param);
-            containerLinear.addView(spectrumGLSurfaceView);
-            spectrumGLSurfaceView.bringToFront();
-            startActivity(new Intent(this, SecondActivity.class));
-        });
-
-        modeSpinner = findViewById(R.id.modeSpinner);
-        sampleTypeSpinner = findViewById(R.id.sampleTypeSpinner);
-
-        setAdapter();
 
         initStethIO();
         updateUI(false);
-        debugModeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                // do something, the isChecked will be
-                // true if the switch is in the On position
-                StethIOBase.getInstance().setDebug(isChecked);
-            }
-        });
-        whiteSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                // do something, the isChecked will be
-                // true if the switch is in the On position
-//              spectrumGLSurfaceView.setBackground(isChecked ? SpectrumGLSurfaceView.Background.WHITE : SpectrumGLSurfaceView.Background.BLACK);
-            }
-        });
     }
 
     @Override
@@ -141,10 +107,8 @@ public class MainActivity extends AppCompatActivity {
     }
     long objId;
     private void initStethIO() throws  InvalidAPIKeyException {
-        if (stethIOManager!=null){
-            spectrumGLSurfaceView.setMap(objId, examType);
-            return;
-        }
+
+
         StethIOBase.prepare(this);
         stethIOManager = StethIOManager.createInstance(this);
         StethIOBase.getInstance().setDebug(true);
@@ -152,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReadyToStart() {
                 startButton.setEnabled(true);
-                LinearLayout progress = findViewById(R.id.loading_container);
+                ProgressBar progress = findViewById(R.id.loading_container);
                 progress.setVisibility(View.GONE);
                 Log.d(TAG, "onReadyToStart");
             }
@@ -214,51 +178,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void setAdapter() {
-        ExamType[] modes = {ExamType.HEART, ExamType.LUNGS, ExamType.VASCULAR};
-        ArrayAdapter<ExamType> spinnerArrayAdapter = new ArrayAdapter<ExamType>(
-                this,
-                android.R.layout.simple_spinner_item,
-                modes);
-        spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        modeSpinner.setAdapter(spinnerArrayAdapter);
-        modeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.d(TAG, "modeSpinner:onItemClick: " + i + " - " + l);
-                try {
-                    examType = modes[i];
-                } catch (Exception e) {
-                    Log.d(TAG, "modeSpinner:: " + e.getLocalizedMessage());
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-        AudioSampleType[] audioSampleTypes = {AudioSampleType.NONE, AudioSampleType.RAW_AUDIO, AudioSampleType.PROCESSED_AUDIO, AudioSampleType.AUTO_GAIN};
-        ArrayAdapter<AudioSampleType> sampleTypesAdapter = new ArrayAdapter<AudioSampleType>(
-                this,
-                android.R.layout.simple_spinner_item,
-                audioSampleTypes);
-        sampleTypesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sampleTypeSpinner.setAdapter(sampleTypesAdapter);
-        sampleTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.d(TAG, "sampleTypeSpinner:onItemClick: " + i + " - " + l);
-                stethIOManager.setAudioSampleType(audioSampleTypes[i]);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-    }
-
     public void start() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.RECORD_AUDIO}, PERMISSION_REQUEST_CODE);
@@ -274,7 +193,16 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             try{
-                stethIOManager.start(examType);
+                Intent intent = getIntent();
+                ExamType examType = ExamType.valueOf(intent.getStringExtra("examType"));
+                AudioSampleType audioSampleType = AudioSampleType.valueOf(intent.getStringExtra("audioSampleType"));
+                Float heartMinimumGain = intent.getFloatExtra("heartMinimumGain", 2.0f);
+                Float lungTargetLevel = intent.getFloatExtra("lungTargetLevel", 0.1f);
+                Float heartTargetLevel = intent.getFloatExtra("heartTargetLevel", 2.0f);
+
+//                StethIOExamOption option = new StethIOExamOption(examType, audioSampleType);
+                StethIOExamOption option = new StethIOExamOption(examType, audioSampleType, heartMinimumGain, lungTargetLevel, heartTargetLevel);
+                stethIOManager.start(option);
                 updateUI(true);
             }catch (Exception e){
                 e.printStackTrace();

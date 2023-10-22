@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+
+   <androidx.cardview.widget.CardView
+       android:layout_marginHorizontal="16dp"
+       app:layout_constraintBottom_toBottomOf="parent"
+       app:layout_constraintEnd_toEndOf="parent"
+       app:layout_constraintStart_toStartOf="parent"
+       app:layout_constraintTop_toTopOf="parent"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content">
+       <LinearLayout
+           android:layout_margin="8dp"
+           android:orientation="vertical"
+           android:gravity="center"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content">
+
+           <TextView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:layout_marginBottom="12dp"
+               android:text="Start the exam with props"
+               android:textSize="22dp"/>
+           <LinearLayout
+               android:orientation="vertical"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content">
+               <LinearLayout
+                   android:orientation="horizontal"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content">
+                   <TextView
+                       android:id="@+id/audioSampleType"
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:layout_centerVertical="true"
+                       android:layout_marginStart="10dp"
+                       android:text="Audio Sample Type" />
+
+                   <Spinner
+                       android:id="@+id/sampleTypeSpinner"
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:layout_marginStart="10dp" />
+               </LinearLayout>
+
+               <LinearLayout
+                   android:orientation="horizontal"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content">
+                   <TextView
+                       android:id="@+id/mode"
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:layout_marginStart="10dp"
+                       android:text="Sample Type"
+                       app:layout_constraintBottom_toBottomOf="parent"
+                       app:layout_constraintStart_toStartOf="parent"
+                       app:layout_constraintTop_toTopOf="parent" />
+
+                   <Spinner
+                       android:id="@+id/modeSpinner"
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:layout_marginStart="10dp"
+                       app:layout_constraintBottom_toBottomOf="parent"
+                       app:layout_constraintStart_toEndOf="@+id/mode"
+                       app:layout_constraintTop_toTopOf="parent" />
+
+               </LinearLayout>
+
+           </LinearLayout>
+           <LinearLayout
+               android:layout_gravity="center"
+               android:gravity="center"
+               android:orientation="horizontal"
+               android:layout_marginRight="5dp"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content">
+               <TextView
+                   android:text="heartGain"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"/>
+
+               <com.google.android.material.slider.Slider
+                   android:id="@+id/heartMinimumGainSlider"
+                   android:tooltipText="tes"
+                   android:valueFrom="2"
+                   android:valueTo="10"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content">
+
+               </com.google.android.material.slider.Slider>
+           </LinearLayout>
+           <LinearLayout
+               android:layout_gravity="center"
+               android:gravity="center"
+               android:orientation="horizontal"
+               android:layout_marginRight="5dp"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content">
+               <TextView
+                   android:text="lungTarget"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"/>
+               <com.google.android.material.slider.Slider
+                   android:id="@+id/lungTargetLevelSlider"
+                   android:valueFrom="0.1"
+                   android:valueTo="1.0"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content">
+
+               </com.google.android.material.slider.Slider>
+           </LinearLayout>
+           <LinearLayout
+               android:layout_gravity="center"
+               android:gravity="center"
+               android:orientation="horizontal"
+               android:layout_marginRight="5dp"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content">
+               <TextView
+                   android:text="heartTarget"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"/>
+               <com.google.android.material.slider.Slider
+                   android:id="@+id/heartTargetLevelSlider"
+                   android:valueFrom="0.5"
+                   android:valueTo="4.0"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content">
+
+               </com.google.android.material.slider.Slider>
+           </LinearLayout>
+           <Button
+               android:id="@+id/main_button"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:text="Start "
+               app:layout_constraintBottom_toBottomOf="parent"
+               app:layout_constraintEnd_toEndOf="parent"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintTop_toTopOf="parent" />
+       </LinearLayout>
+   </androidx.cardview.widget.CardView>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
